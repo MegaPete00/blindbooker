@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Blind Booker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=Big+Shoulders+Display:wght@800;900&display=swap">
+<style>
+/* Layout: House of Hoss header bar with ring ropes, a silver nameplate showing the current draw,
+   then the card itself as a stack of bouts (main event on top, biggest). Tokens match titlerun/template.html; keep in sync. */
+:root{
+  --canvas:#BDC1C6; --panel:#FFFFFF; --ink:#0E0F12; --muted:#40474F; --line:#A3A8AF; --well:#D0D3D7;
+  --bar:#2F353C; --bar-ink:#FFFFFF; --bar-muted:#AEB4BB; --bar-line:#454C55;
+  --rope-r:#5B18EA; --rope-w:#FFFFFF; --rope-b:#0E0F12;
+  --plate-a:#F4F5F7; --plate-b:#C3C7CD; --plate-c:#7D848D; --plate-edge:#3D444C; --plate-ink:#0E0F12;
+  --plate-shine:rgba(255,255,255,.6);
+  --accent:#5B18EA; --on-accent:#FFFFFF; --accent-soft:rgba(91,24,234,.10);
+  --focus:#5B18EA; --shadow:rgba(14,15,18,.18);
+  --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --f-body:"Barlow","Helvetica Neue",Arial,sans-serif;
+  --f-label:"Barlow Condensed","Arial Narrow",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --canvas:#16181B; --panel:#212429; --ink:#EEEFF1; --muted:#9BA2AA; --line:#33383F; --well:#2A2E34;
+    --bar:#0B0C0E; --bar-ink:#FFFFFF; --bar-muted:#8D949C; --bar-line:#2A2F35;
+    --rope-r:#8F5CFF; --rope-w:#E6E7EA; --rope-b:#5A616A;
+    --plate-a:#DDE0E4; --plate-b:#A6ABB2; --plate-c:#646B74; --plate-edge:#30363D; --plate-ink:#0E0F12;
+    --plate-shine:rgba(255,255,255,.45);
+    --accent:#8F5CFF; --on-accent:#0E0F12; --accent-soft:rgba(143,92,255,.16);
+    --focus:#A57DFF; --shadow:rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --canvas:#16181B; --panel:#212429; --ink:#EEEFF1; --muted:#9BA2AA; --line:#33383F; --well:#2A2E34;
+  --bar:#0B0C0E; --bar-ink:#FFFFFF; --bar-muted:#8D949C; --bar-line:#2A2F35;
+  --rope-r:#8F5CFF; --rope-w:#E6E7EA; --rope-b:#5A616A;
+  --plate-a:#DDE0E4; --plate-b:#A6ABB2; --plate-c:#646B74; --plate-edge:#30363D; --plate-ink:#0E0F12;
+  --plate-shine:rgba(255,255,255,.45);
+  --accent:#8F5CFF; --on-accent:#0E0F12; --accent-soft:rgba(143,92,255,.16);
+  --focus:#A57DFF; --shadow:rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--canvas);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--focus);outline-offset:2px}
+.wrap{max-width:34rem;margin-inline:auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+
+/* Header bar and ropes (same as Title Run) */
+.bar{background:var(--bar);color:var(--bar-ink)}
+.bar-in{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:16px 14px}
+.mark{font-family:var(--f-display);font-weight:900;font-size:1.75rem;line-height:.85;text-transform:uppercase;letter-spacing:.01em;margin:0}
+.mark span{display:block;font-family:var(--f-label);font-weight:600;font-size:.7rem;letter-spacing:.22em;color:var(--bar-muted);margin-top:6px}
+.modes{display:flex;gap:2px;padding:3px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--bar-line)}
+.modes button{background:none;border:0;border-radius:999px;padding:7px 13px;cursor:pointer;font-family:var(--f-label);font-weight:700;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bar-muted)}
+.modes button[aria-pressed="true"]{background:var(--bar-ink);color:var(--bar)}
+.ropes{display:grid;gap:4px;padding-block:0 8px;background:var(--bar)}
+.ropes i{display:block;height:4px}
+.ropes i:nth-child(1){background:var(--rope-r)}
+.ropes i:nth-child(2){background:var(--rope-w)}
+.ropes i:nth-child(3){background:var(--rope-b)}
+
+main{display:grid;gap:16px;padding-block:18px 44px}
+.meta{display:flex;justify-content:space-between;gap:12px;font-family:var(--f-label);font-weight:600;font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+/* The draw: silver nameplate showing what you have to place next */
+.plate{position:sticky;top:env(safe-area-inset-top, 0px);z-index:4;overflow:hidden;border-radius:14px;padding:20px 26px 18px;color:var(--plate-ink);
+  background:
+    radial-gradient(circle at 13px 13px, var(--plate-edge) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 13px) 13px, var(--plate-edge) 3px, transparent 3.6px),
+    radial-gradient(circle at 13px calc(100% - 13px), var(--plate-edge) 3px, transparent 3.6px),
+    radial-gradient(circle at calc(100% - 13px) calc(100% - 13px), var(--plate-edge) 3px, transparent 3.6px),
+    linear-gradient(112deg, var(--plate-b) 0%, var(--plate-a) 26%, var(--plate-b) 50%, var(--plate-a) 72%, var(--plate-c) 100%);
+  box-shadow:inset 0 0 0 2px var(--plate-edge), inset 0 0 0 5px var(--plate-a), inset 0 0 0 6px var(--plate-edge), 0 8px 22px var(--shadow)}
+.plate::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg, transparent 35%, var(--plate-shine) 50%, transparent 65%);transform:translateX(-120%)}
+.plate.glint::after{animation:glint 1s ease-out 1}
+@keyframes glint{to{transform:translateX(120%)}}
+.eyebrow{font-family:var(--f-label);font-weight:700;font-size:.78rem;letter-spacing:.22em;text-transform:uppercase}
+.plate h1{font-family:var(--f-display);font-weight:900;font-size:clamp(2rem, 9vw, 3.1rem);line-height:.92;text-transform:uppercase;text-wrap:balance;overflow-wrap:anywhere;margin:6px 0 8px;text-shadow:0 1px 0 var(--plate-shine)}
+.plate-sub{font-family:var(--f-label);font-weight:700;font-size:.9rem;letter-spacing:.18em;text-transform:uppercase;min-height:1.2em}
+.hint{font-size:.92rem;color:var(--muted);margin:0}
+/* The plate sticks to the top while you scroll the card; this band keeps content from showing above it on notched phones */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top, 0px);z-index:10;background:var(--canvas)}
+/* Reveal: the plate itself is the button, then the revealed match shows highlighted on the plate and flashes on the card */
+.plate.tap{cursor:pointer}
+.plate.tap:hover,.plate.tap:focus-visible{box-shadow:inset 0 0 0 2px var(--plate-edge), inset 0 0 0 5px var(--plate-a), inset 0 0 0 6px var(--plate-edge), 0 0 0 3px var(--accent), 0 8px 22px var(--shadow);outline:none}
+.plate h1 mark{background:var(--accent);color:var(--on-accent);text-shadow:none;padding:0 .14em;border-radius:4px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.stip.flash{animation:hl 2.6s ease-out 1;border-radius:4px}
+@keyframes hl{0%,45%{background:var(--accent);color:var(--on-accent);box-shadow:0 0 0 4px var(--accent)}100%{background:transparent;box-shadow:0 0 0 4px transparent}}
+.hidden-bout{border-style:dashed}
+.stip.mystery{font-size:1.6rem;letter-spacing:.12em;color:var(--muted)}
+.unrevealed{font-size:.88rem;color:var(--muted)}
+
+/* The card: one block per bout, main event first */
+.board{display:grid;gap:10px}
+.bout{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px 14px;display:grid;gap:10px}
+.bout.main{border:2px solid var(--ink);padding:14px 16px 16px}
+.bout-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.pos{font-family:var(--f-label);font-weight:700;font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.bout.main .pos{color:var(--accent)}
+.stip{font-family:var(--f-display);font-weight:800;font-size:1.25rem;line-height:1;text-transform:uppercase;min-width:0;overflow-wrap:anywhere}
+.bout.main .stip{font-size:1.5rem}
+.fmt{font-family:var(--f-label);font-weight:600;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lineup{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.side{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0}
+.vs,.amp{font-family:var(--f-label);font-weight:700;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.slot{min-width:0;border-radius:8px;padding:8px 12px;font-family:var(--f-display);font-weight:800;font-size:1.15rem;line-height:1.05;text-transform:uppercase;overflow-wrap:anywhere}
+.bout.main .slot{font-size:1.35rem}
+.slot.filled{background:var(--well)}
+.bout .slot.open{color:var(--muted);font-family:var(--f-label);font-weight:600;font-size:.86rem;letter-spacing:.12em;padding:9px 14px;border:1.5px dashed var(--line);background:transparent}
+.bout button.slot.open{cursor:pointer;border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.bout button.slot.open:hover{background:var(--accent);color:var(--on-accent)}
+.fresh{animation:slam .45s cubic-bezier(.2,1.5,.4,1) 1}
+@keyframes slam{from{transform:translateY(-8px) scale(1.15);opacity:.2}to{transform:none;opacity:1}}
+
+/* Finished card */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px}
+.card h2{margin:0;font-family:var(--f-display);font-weight:900;font-size:1.6rem;line-height:1;text-transform:uppercase}
+.share{margin:0;white-space:pre-wrap;font:500 .9rem/1.4 var(--f-body);background:var(--canvas);border:1px solid var(--line);border-radius:8px;padding:12px;overflow-wrap:anywhere}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:0;border-radius:10px;padding:12px 18px;cursor:pointer;font-family:var(--f-label);font-weight:700;font-size:1rem;letter-spacing:.14em;text-transform:uppercase;background:var(--accent);color:var(--on-accent)}
+.btn.alt{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.btn:active{transform:translateY(1px)}
+.status{font-size:.88rem;color:var(--muted);min-height:1.3em;margin:0}
+#copyBox{position:absolute;left:-9999px;top:0}
+footer{font-size:.8rem;color:var(--muted);padding-block:0 32px}
+@media (prefers-reduced-motion: reduce){ .fresh,.plate.glint::after,.stip.flash{animation:none} }
+</style>
+
+</head>
+<body>
+<header class="bar">
+  <div class="wrap bar-in">
+    <p class="mark">Blind Booker<span>Book the card blind</span></p>
+    <div class="modes" role="group" aria-label="Game mode">
+      <button type="button" id="modeDaily" aria-pressed="true">Daily</button>
+      <button type="button" id="modeFree" aria-pressed="false">Free play</button>
+    </div>
+  </div>
+  <div class="ropes" aria-hidden="true"><i></i><i></i><i></i></div>
+</header>
+
+<main class="wrap">
+  <div class="meta"><span id="metaL">Daily</span><span id="metaR"></span></div>
+
+  <section class="plate" id="plate" aria-live="polite">
+    <div class="eyebrow" id="drawEyebrow">Loading</div>
+    <h1 id="drawName">The card</h1>
+    <div class="plate-sub" id="drawSub"></div>
+  </section>
+  <p class="hint" id="hint"></p>
+
+  <section class="board" id="board" aria-label="The card"></section>
+
+  <section class="card" id="done" hidden>
+    <h2 id="doneTitle">Card's locked</h2>
+    <pre class="share" id="share"></pre>
+    <div class="btns">
+      <button type="button" class="btn" id="copyBtn">Copy card</button>
+      <button type="button" class="btn alt" id="againBtn">Book another</button>
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
+  </section>
+</main>
+<footer class="wrap" id="foot"></footer>
+<textarea id="copyBox" aria-hidden="true" tabindex="-1"></textarea>
+
+<script>
+// Blind Booker. Data (roster names, match types, card structure, launch date) is inlined by blindbooker/build.py.
+const D = {"launch":"2026-11-03","site":"","roster":["2 Cold Scorpio","8-Ball","Abdullah the Butcher","Adam Bomb","Adam Cole","Adam Pearce","Adam Rose","Ahmed Johnson","Aiden English","AJ Styles","Akira Tozawa","Al Snow","Albert","Alberto Del Rio","Aldo Montoya","Aleister Black","Alex Riley","Alex Wright","Andrade","André the Giant","Angel Garza","Angelo Dawkins","Anthony Bowens","Antonio Cesaro","Apollo Crews","Arn Anderson","Austin Aries","Austin Theory","B. Brian Blair","B-2","Bad Bunny","Bad News Brown","Balls Mahoney","Bam Bam Bigelow","Bandido","The Barbarian","Baron Corbin","Barry Horowitz","Barry Windham","Bart Gunn","Bastion Booger","Batista","The Berzerker","Big Boss Man","Big Cass","Big E","Big John Studd","Big Show","Billy Gunn","Billy Kidman","The Blue Meanie","Bo Dallas","Bob Backlund","Bobby Eaton","Bobby Lashley","Bobby Roode","Bobo Brazil","The Boogeyman","Booker T","Boris Zhukov","Braun Strowman","Bray Wyatt","Brent Albright","Bret Hart","Brian Cage","The Brian Kendrick","Brian Knobbs","Brian Pillman","The British Bulldog","Brock Lesnar","Brody King","Bron Breakker","Bronson Reed","Bruno Sammartino","Brutus Beefcake","Brutus Creed","Buddy Matthews","Buddy Murphy","Buddy Rogers","Buff Bagwell","Bully Ray","Bushwhacker Butch","Bushwhacker Luke","Butch Reed","Cameron Grimes","Carlito","Carmelo Hayes","Cash Wheeler","Cedric Alexander","Chad Gable","Chainz","Charlie Haas","Chavo Guerrero","Chavo Guerrero Sr.","Chris Benoit","Chris Candido","Chris Jericho","Chris Kanyon","Chris Masters","Christian","Christopher Daniels","Christopher Nowinski","Chuck Palumbo","Chuck Taylor","CM Punk","Cody Rhodes","Colt Cabana","Crash Holly","Crowbar","Crush","Curt Hawkins","Curtis Axel","D-Von Dudley","Dalton Castle","Damian Priest","Damien Demento","Damien Sandow","Dan Severn","Danhausen","Daniel Bryan","Daniel Garcia","Daniel Puder","Danny Davis","Darby Allin","Darren Young","David Arquette","David Flair","David Otunga","Dax Harwood","Dean Malenko","Demolition Ax","Demolition Smash","Diamond Dallas Page","Dick Murdoch","Dick Slater","Dino Bravo","Disco Inferno","D'Lo Brown","Doink the Clown","Dolph Ziggler","Dominik Mysterio","Don Muraco","Dory Funk Jr.","Doug Gilbert","Dragon Lee","Drew Carey","Drew Gulak","Drew McIntyre","Droz","Duke Droese","Dustin Rhodes","Dusty Rhodes","Dynamite Kid","Earthquake","Eddie Guerrero","Eddie Kingston","Edge","El Torito","Elias","Elijah Burke","Elix Skipper","Enzo Amore","Epico","Eric Young","Erick Rowan","Ernest Miller","Essa Rios","Ethan Carter III","Ethan Page","Eugene","Evan Karagias","Ezekiel Jackson","Fandango","Finlay","Finn Bálor","Frankie Kazarian","Funaki","Gangrel","Gen. Rection","George Steele","Gillberg","Glacier","The Godfather","Goldberg","Grandmaster Sexay","Grayson Waller","The Great Khali","The Great Muta","Greg Valentine","Gregory Helms","Gunther","Haku","Hakushi","\"Hangman\" Adam Page","Hardcore Holly","Harley Race","Heath Slater","Heidenreich","Henry O. Godwinn","Hercules","Hillbilly Jim","The Honky Tonk Man","Hook","Horace Hogan","Hornswoggle","Hulk Hogan","Hunico","Ilja Dragunov","The Iron Sheik","IShowSpeed","Ivan Koloff","Ivar","Jack Brisco","Jack Gallagher","Jack Perry","Jack Swagger","Jackson Drake","Jacob Blu","Jacob Fatu","Jake Roberts","James Ellsworth","James Storm","Jamie Noble","Jay Briscoe","Jay Lethal","JD McDonagh","Jeff Hardy","Jeff Jarrett","Jerry Lawler","Jerry Lynn","Jerry Sags","Je'Von Evans","Jey Uso","Jim Brunzell","Jim Duggan","Jim Neidhart","Jimmy Del Ray","Jimmy Snuka","Jimmy Uso","Jimmy Valiant","Jinder Mahal","Joe Hendry","Joey Mercury","John \"Bradshaw\" Layfield","John Cena","John Morrison","Johnny Gargano","Johnny Knoxville","Jon Moxley","Jonathan Coachman","Jonathan Gresham","Jordan Devlin","JTG","Julius Creed","Junkyard Dog","Justin Credible","Justin Gabriel","Juventud Guerrera","Kalisto","Kamala","Kane","Karl Anderson","Karrion Kross","Kazuchika Okada","Keith Lee","Ken Patera","Ken Shamrock","Kenny Dykstra","Kenny Omega","Kensuke Sasaki","Kenzo Suzuki","Kerry Von Erich","Kevin Knight","Kevin Nash","Kevin Owens","Kevin Sullivan","Kevin Thorn","Kid Kash","King Kong Bundy","Kofi Kingston","Koko B. Ware","Konnan","Konosuke Takeshita","Kurrgan","Kurt Angle","Kushida","Kyle Fletcher","Kyle O'Reilly","LA Knight","La Parka","Lance Archer","Lance Storm","Larry Zbyszko","Lars Sullivan","Lenny Lane","Leon Ruff","Lex Luger","Lio Rush","Logan Paul","Low Ki","Luchasaurus","Ludwig Kaiser","Luke Gallows","Luke Harper","Luther Reigns","Madcap Moss","Mantaur","Marc Mero","Mark Briscoe","Mark Davis","Mark Henry","Mark Jindrak","Marty Jannetty","Mason Ryan","Matt Cardona","Matt Hardy","Matt Jackson","Matt Morgan","Matt Sydal","Matt Taven","Maven","Max Caster","Max Moon","Michael Cole","Michael Hayes","Mick Foley","Mideon","Mike Awesome","Mike Bailey","Mike Bennett","Mike Knox","Mike Rotunda","Mike Sanders","Mike Santana","The Miz","MJF","Mo","Mojo Rawley","Montel Vontavious Porter","Montez Ford","Mosh","The Mountie","Mr. Kennedy","Mr. Perfect","Muhammad Hassan","Mustafa Ali","Myles Borne","Nathan Jones","Nick Aldis","Nick Jackson","Nigel McGuinness","Nikita Koloff","Nikolai Volkoff","No Way Jose","Nunzio","Oba Femi","Oklahoma","Ole Anderson","Omos","One Man Gang","Orange Cassidy","Orlando Jordan","Otis","Owen Hart","Pac","Pat McAfee","Pat Patterson","Paul London","Paul Orndorff","Paul Roma","Pedro Morales","Penta","Perry Saturn","Pete Dunne","Powerhouse Hobbs","Primo","Prince Iaukea","Psicosis","Psychosis","R-Truth","Randy Orton","Randy Savage","Raven","Razor Ramon","Razor Ramon II","The Red Rooster","René Duprée","The Renegade","Rey Fénix","Rey Mysterio","Rhino","Ric Flair","Ricardo Rodriguez","Rich Swann","Rick Boogs","Rick Martel","Rick Rude","Rick Steiner","Ricky Morton","Ricky Saints","Ricky Steamboat","Rico","Ricochet","Riddle","Ridge Holland","Rikishi","Road Dogg","Road Warrior Animal","Road Warrior Hawk","Rob Conway","Rob Van Dam","Robert Gibson","The Rock","Rockstar Spud","Roddy Piper","Roderick Strong","Roman Reigns","Ron Bass","Ron Garvin","Ron Simmons","Rosey","Rusev","Rush","Ryback","Saba Simba","Sabu","Sam Houston","Sami Callihan","Sami Zayn","Sammy Guevara","Samoa Joe","Samu","The Sandman","Santino Marella","Santos Escobar","Savio Vega","Scorpio Sky","Scott Steiner","Scotty 2 Hotty","Seth Rollins","Sgt. Slaughter","Shane Douglas","Shane McMahon","Shawn Michaels","Shawn Spears","Shawn Stasiak","Sheamus","Sheik Abdul Bashir","Shelton Benjamin","Shinjiro Otani","Shinsuke Nakamura","Simon Dean","Sin Cara","Skinner","Snitsky","Solo Sikoa","Sonjay Dutt","Spike Dudley","Squat Team I","Squat Team II","Stan Hansen","Stan Lane","Stan Stasiak","Steve Blackman","Steve Maclin","Steve McMichael","Steve Williams","Steven Dunn","Stevie Ray","Sting","\"Stone Cold\" Steve Austin","Super Crazy","\"Superstar\" Billy Graham","Swerve Strickland","Sycho Sid","Sylvain Grenier","Sylvan","T. J. Perkins","Tajiri","Taka Michinoku","Tatanka","Taz","Ted DiBiase","Ted DiBiase Jr.","Terry Funk","Test","Thom Latimer","Thrasher","Tiger Ali Singh","Timothy Well","Tito Santana","Titus O'Neil","Tom Brandi","Tom Prichard","Tom Zenk","Tommaso Ciampa","Tommy Dreamer","Tommy Rich","Tony D'Angelo","Tony Nese","Trent Beretta","Trevor Murdoch","Trick Williams","Triple H","Tucker","Tully Blanchard","Tyler Bate","Tyler Breeze","Tyler Reks","Typhoon","Tyrus","Tyson Kidd","Ultimate Warrior","Último Dragón","Umaga","The Undertaker","Vader","Val Venis","Velveteen Dream","Vince McMahon","Vince Russo","Virgil","Viscera","Vladimir Kozlov","Wade Barrett","Wardlow","The Warlord","Wes Lee","Will Ospreay","William Regal","Wrath","X-Pac","Xavier Woods","Yokozuna","Yoshi Tatsu","Zachary Wentz"],"card":[{"pos":"Main Event","rule":"fixed","stip":"Standard","format":"singles"},{"pos":"Semi-Main","rule":"gimmick","format":"singles"},{"pos":"Midcard","rule":"fixed","stip":"Standard","format":"tag"},{"pos":"Opener","rule":"wild","weights":{"singles":45,"tag":35,"triple":8,"four":5,"handicap":4,"tag3":3}}],"formats":{"singles":{"label":"Singles","sides":[1,1]},"tag":{"label":"Tag Team","sides":[2,2]},"triple":{"label":"Triple Threat","sides":[1,1,1]},"four":{"label":"Fatal 4-Way","sides":[1,1,1,1]},"handicap":{"label":"Handicap 2-on-1","sides":[1,2]},"tag3":{"label":"Triple Threat Tag","sides":[2,2,2]}},"stips":[{"name":"Standard","formats":["singles","tag","triple","four","handicap","tag3"]},{"name":"Street Fight","formats":["singles","tag"]},{"name":"Steel Cage Match","formats":["singles","tag","triple"]},{"name":"Hell in a Cell","formats":["singles","triple"]},{"name":"Ladder Match","formats":["singles","triple","four","tag3"]},{"name":"TLC Match","formats":["singles","tag","triple","tag3"]},{"name":"Tables Match","formats":["singles","tag","tag3"]},{"name":"Casket Match","formats":["singles","handicap"]},{"name":"Buried Alive Match","formats":["singles"]},{"name":"Last Man Standing","formats":["singles"]},{"name":"I Quit Match","formats":["singles"]},{"name":"Submission Match","formats":["singles"]},{"name":"Iron Man Match","formats":["singles"]},{"name":"No Holds Barred","formats":["singles","tag","handicap"]},{"name":"Falls Count Anywhere","formats":["singles","four"]},{"name":"Hardcore Match","formats":["singles","four"]},{"name":"Strap Match","formats":["singles"]},{"name":"Dog Collar Match","formats":["singles"]},{"name":"Barbed Wire Deathmatch","formats":["singles"]},{"name":"First Blood Match","formats":["singles"]},{"name":"Ambulance Match","formats":["singles"]},{"name":"Inferno Match","formats":["singles"]},{"name":"Lumberjack Match","formats":["singles"]},{"name":"Two Out of Three Falls","formats":["singles","tag"]},{"name":"Loser Leaves Town","formats":["singles"]},{"name":"Tornado Tag Match","formats":["tag"]},{"name":"Parking Lot Brawl","formats":["singles"]},{"name":"Boiler Room Brawl","formats":["singles"]},{"name":"Punjabi Prison","formats":["singles"]},{"name":"Ultimate X","formats":["triple","four"]},{"name":"Kennel from Hell","formats":["singles"]}]};
+const ROSTER = D.roster, FORMATS = D.formats, STIPS = D.stips, CARD = D.card;   // CARD[0] = main event, top of the card
+const SAVE_V = 4;                                  // bump when the card structure changes, so old saved games are dropped
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const store = {
+  get(k){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* Seeded draws: the same seed always deals the same card and the same wrestlers, in the same order.
+   Daily seed = the local date, so everyone gets the same draws that day. */
+function xmur3(str){ let h = 1779033703 ^ str.length;
+  for(let i = 0; i < str.length; i++){ h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; }
+  return () => { h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return (h ^= h >>> 16) >>> 0; }; }
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const pick = (r, list) => list[Math.floor(r() * list.length)];
+
+/* The card's structure comes from data/match_types.json "card":
+   fixed   = that exact stip + format
+   gimmick = any stip but Standard that allows the given format
+   wild    = pick a format first, by the slot's "weights" (mostly 1v1 and 2v2), then a stip that allows it.
+             Never a plain 1v1 or 2v2, never a stip already used, never a stip + format already on the card. */
+function buildCard(r){
+  const card = [];
+  CARD.forEach(slot => { if(slot.rule === "fixed") card.push({stip: slot.stip, fmt: slot.format}); else card.push(null); });
+  CARD.forEach((slot, i) => {
+    const taken = new Set(card.filter(Boolean).filter(m => m.stip !== "Standard").map(m => m.stip));
+    const onCard = new Set(card.filter(Boolean).map(m => m.stip + "|" + m.fmt));
+    if(slot.rule === "gimmick"){
+      card[i] = {stip: pick(r, STIPS.filter(s => s.name !== "Standard" && !taken.has(s.name) && s.formats.includes(slot.format))).name, fmt: slot.format};
+    } else if(slot.rule === "wild"){
+      const ok = (s, f) => !taken.has(s.name) && !onCard.has(s.name + "|" + f) && !(s.name === "Standard" && (f === "singles" || f === "tag"));
+      const fmts = Object.keys(FORMATS).filter(f => STIPS.some(s => s.formats.includes(f) && ok(s, f)));
+      const w = f => (slot.weights || {})[f] ?? 1;
+      let x = r() * fmts.reduce((a, f) => a + w(f), 0), fmt = fmts[fmts.length - 1];
+      for(const f of fmts){ x -= w(f); if(x < 0){ fmt = f; break; } }
+      card[i] = {stip: pick(r, STIPS.filter(s => s.formats.includes(fmt) && ok(s, fmt))).name, fmt};
+    }
+  });
+  return card;
+}
+function deal(seed){
+  const r = mulberry32(xmur3("bb2|" + seed)());
+  const matches = buildCard(r);
+  const need = matches.reduce((n, m) => n + FORMATS[m.fmt].sides.reduce((a, b) => a + b, 0), 0);
+  const pool = ROSTER.slice(), wrestlers = [];
+  for(let i = 0; i < need; i++){ const j = i + Math.floor(r() * (pool.length - i)); [pool[i], pool[j]] = [pool[j], pool[i]]; wrestlers.push(pool[i]); }
+  return {matches, wrestlers};
+}
+const STD_NAME = {singles: "Singles Match", tag: "Tag Team Match", triple: "Triple Threat Match", four: "Fatal 4-Way Match", handicap: "Handicap Match", tag3: "Triple Threat Tag Match"};
+const matchName = m => m.stip === "Standard" ? STD_NAME[m.fmt] : m.stip;
+const fmtLabel = m => m.stip === "Standard" ? (m.fmt === "handicap" ? "2-on-1" : "") : m.fmt === "singles" ? "" : FORMATS[m.fmt].label;
+
+/* Dates and puzzle numbers (local midnight, like Title Run) */
+const pad = n => String(n).padStart(2, "0");
+const localISO = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const dayNo = iso => { const [y,m,d] = iso.split("-").map(Number), [ly,lm,ld] = D.launch.split("-").map(Number);
+  return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(ly, lm - 1, ld)) / 864e5) + 1; };
+
+/* Game state: the seed, how many hidden matches have been revealed (r), and which slot each drawn wrestler went into (w).
+   Everything else is replayed from those. */
+let S = null, fresh = null, showing = false, holdTimer = null;
+const valid = g => g && g.v === SAVE_V && Array.isArray(g.w) && typeof g.r === "number";
+// Matches hidden until the player reveals them, in card order (gimmick semi-main, then the wild card opener)
+const REVEALS = CARD.map((c, i) => c.rule === "fixed" ? -1 : i).filter(i => i >= 0);
+const REVEAL_LABEL = {gimmick: "gimmick match", wild: "wild card match"};
+const REVEAL_TITLE = {gimmick: "Gimmick match", wild: "Wild card"};
+const revealed = pos => CARD[pos].rule === "fixed" || REVEALS.indexOf(pos) < S.r;
+const ready = () => S.r >= REVEALS.length && !showing;
+function load(mode){
+  if(mode === "daily"){
+    const today = localISO(new Date()), saved = store.get("bb-daily");
+    S = valid(saved) && saved.seed === today ? saved : {v: SAVE_V, seed: today, r: 0, w: []};
+  } else {
+    const saved = store.get("bb-free");
+    S = valid(saved) ? saved : newFree();
+  }
+  S.mode = mode; S.deal = deal(S.seed); fresh = null; showing = false; clearTimeout(holdTimer);
+  store.set("bb-mode", mode);
+}
+function newFree(){ return {v: SAVE_V, seed: "free-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8), r: 0, w: []}; }
+function save(){ const {deal: _, mode, ...keep} = S; store.set(mode === "daily" ? "bb-daily" : "bb-free", keep); }
+
+const done = () => S.w.length >= S.deal.wrestlers.length;
+const whoIn = key => { const i = S.w.indexOf(key); return i < 0 ? null : S.deal.wrestlers[i]; };
+
+// The plate is the reveal button. Each click shows the next hidden match on the plate, highlighted, for a beat;
+// then the plate moves on (next reveal prompt, or the first wrestler after the last reveal).
+function reveal(){
+  if(showing || S.r >= REVEALS.length) return;
+  S.r++; fresh = "m" + REVEALS[S.r - 1]; save();
+  const last = S.r === REVEALS.length;
+  showing = true;
+  holdTimer = setTimeout(() => { showing = false; fresh = last ? "draw" : "prompt"; render(); }, last ? 1800 : 1500);
+  render();
+}
+function placeWrestler(key){
+  if(!ready() || done() || S.w.includes(key)) return;
+  S.w.push(key); fresh = key; save(); render();
+}
+
+/* Rendering */
+function slotHTML(key, live){
+  const who = whoIn(key);
+  if(who) return `<span class="slot filled${fresh === key ? " fresh" : ""}">${esc(who)}</span>`;
+  return live ? `<button type="button" class="slot open" data-slot="${key}">Book here</button>`
+              : `<span class="slot open">Open</span>`;
+}
+function boutHTML(m, pos){
+  const main = pos === 0 ? " main" : "";
+  if(!revealed(pos)) return `<article class="bout${main} hidden-bout">
+    <div class="bout-h"><span class="pos">${esc(CARD[pos].pos)}</span></div>
+    <div class="stip mystery">???</div>
+    <div class="unrevealed">${CARD[pos].rule === "wild" ? "Wild card match. Could be anything." : "1v1 gimmick match."} Revealed before the draw.</div></article>`;
+  const live = ready() && !done(), fl = fmtLabel(m);
+  const sides = FORMATS[m.fmt].sides.map((n, side) =>
+    `<div class="side">${Array.from({length: n}, (_, k) => slotHTML(`${pos}-${side}-${k}`, live)).join('<span class="amp">&amp;</span>')}</div>`);
+  const now = fresh === "m" + pos;
+  return `<article class="bout${main}${now ? " fresh" : ""}">
+    <div class="bout-h"><span class="pos">${esc(CARD[pos].pos)}</span>${fl ? `<span class="fmt">${esc(fl)}</span>` : ""}</div>
+    <div class="stip${now ? " flash" : ""}">${esc(matchName(m))}</div>
+    <div class="lineup">${sides.join('<span class="vs">vs</span>')}</div></article>`;
+}
+function shareText(){
+  const lines = [S.mode === "daily" ? `Blind Booker #${dayNo(S.seed)}` : "Blind Booker free play"];
+  S.deal.matches.forEach((m, pos) => {
+    const fl = fmtLabel(m);
+    lines.push("", `${CARD[pos].pos.toUpperCase()}: ${matchName(m)}${fl && m.stip !== "Standard" ? ` (${fl})` : ""}`);
+    lines.push(FORMATS[m.fmt].sides.map((n, side) => Array.from({length: n}, (_, k) => whoIn(`${pos}-${side}-${k}`)).join(" & ")).join(" vs "));
+  });
+  if(D.site) lines.push("", D.site);
+  return lines.join("\n");
+}
+function render(){
+  const plate = $("#plate"), n = S.deal.wrestlers.length, over = done();
+  $("#modeDaily").setAttribute("aria-pressed", S.mode === "daily");
+  $("#modeFree").setAttribute("aria-pressed", S.mode === "free");
+  $("#metaL").textContent = S.mode === "daily" ? `Daily #${dayNo(S.seed)}` : "Free play";
+  $("#metaR").textContent = S.mode === "daily" ? new Date().toLocaleDateString(undefined, {weekday: "short", month: "short", day: "numeric"}) : "";
+  const prompt = S.r < REVEALS.length && !showing;          // the plate is a button right now
+  plate.classList.toggle("tap", prompt);
+  if(prompt){ plate.setAttribute("role", "button"); plate.tabIndex = 0; } else { plate.removeAttribute("role"); plate.removeAttribute("tabindex"); }
+  if(prompt){
+    const slot = CARD[REVEALS[S.r]];
+    $("#drawEyebrow").textContent = slot.pos;
+    $("#drawName").textContent = `Click to reveal ${REVEAL_LABEL[slot.rule]}`;
+    $("#drawSub").textContent = "\u00a0";
+    $("#hint").textContent = "";
+  } else if(showing){
+    const pos = REVEALS[S.r - 1], m = S.deal.matches[pos];
+    $("#drawEyebrow").textContent = `${CARD[pos].pos}: ${REVEAL_TITLE[CARD[pos].rule]}`;
+    $("#drawName").innerHTML = `<mark>${esc(matchName(m))}</mark>`;
+    $("#drawSub").textContent = fmtLabel(m) || "\u00a0";
+    $("#hint").textContent = "";
+  } else if(!over){
+    $("#drawEyebrow").textContent = `Wrestler ${S.w.length + 1} of ${n}`;
+    $("#drawName").textContent = S.deal.wrestlers[S.w.length];
+    $("#drawSub").textContent = " ";
+    $("#hint").textContent = "Put them in any open spot. No take-backs.";
+  } else {
+    $("#drawEyebrow").textContent = S.mode === "daily" ? `Blind Booker #${dayNo(S.seed)}` : "Free play";
+    $("#drawName").textContent = "Card's locked";
+    $("#drawSub").textContent = `${n} wrestlers, ${S.deal.matches.length} matches`;
+    $("#hint").textContent = "";
+  }
+  if(fresh){ plate.classList.remove("glint"); void plate.offsetWidth; plate.classList.add("glint"); }
+  $("#board").innerHTML = S.deal.matches.map(boutHTML).join("");
+  $("#done").hidden = !over;
+  if(over){
+    $("#share").textContent = shareText();
+    $("#doneTitle").textContent = S.mode === "daily" ? "Tonight's card" : "Your card";
+    $("#againBtn").textContent = S.mode === "daily" ? "Free play" : "Book another";
+  }
+  $("#status").textContent = over && S.mode === "daily" ? nextLine() : "";
+  $("#foot").textContent = `Prototype. ${ROSTER.length} wrestlers and ${STIPS.length - 1} gimmick matches in the pool. Daily card changes at midnight your time.`;
+}
+function nextLine(){
+  const now = new Date(), t = new Date(now); t.setHours(24, 0, 0, 0);
+  const mins = Math.max(1, Math.round((t - now) / 6e4));
+  return `New card in ${Math.floor(mins / 60)}h ${mins % 60}m.`;
+}
+
+/* Wiring */
+$("#board").addEventListener("click", e => {
+  const b = e.target.closest("button[data-slot]"); if(b) placeWrestler(b.dataset.slot);
+});
+$("#plate").addEventListener("click", () => { if($("#plate").classList.contains("tap")) reveal(); });
+$("#plate").addEventListener("keydown", e => {
+  if($("#plate").classList.contains("tap") && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); reveal(); } });
+$("#modeDaily").addEventListener("click", () => { load("daily"); render(); });
+$("#modeFree").addEventListener("click", () => { load("free"); render(); });
+$("#againBtn").addEventListener("click", () => {
+  if(S.mode === "free") store.set("bb-free", newFree());
+  load("free"); render(); window.scrollTo({top: 0, behavior: "smooth"});
+});
+$("#copyBtn").addEventListener("click", () => {
+  const text = shareText(), ok = () => { $("#status").textContent = "Copied. Go start an argument."; };
+  const fallback = () => { const box = $("#copyBox"); box.value = text; box.select();
+    try{ document.execCommand("copy"); ok(); }catch(e){ $("#status").textContent = "Couldn't copy. Select the card text and copy it yourself."; } };
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, fallback); else fallback();
+});
+setInterval(() => { if(S && S.mode === "daily" && done()) $("#status").textContent = nextLine(); }, 60000);
+
+load(store.get("bb-mode") === "free" ? "free" : "daily");
+render();
+
+</script>
+</body>
+</html>
